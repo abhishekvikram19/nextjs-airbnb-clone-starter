@@ -18,86 +18,139 @@ import { plainToClass } from "class-transformer";
 import { ApiNestedQuery } from "../../decorators/api-nested-query.decorator";
 import * as nestAccessControl from "nest-access-control";
 import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
-import { UserService } from "../user.service";
+import { ListingService } from "../listing.service";
 import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
-import { UserCreateInput } from "./UserCreateInput";
-import { UserWhereInput } from "./UserWhereInput";
-import { UserWhereUniqueInput } from "./UserWhereUniqueInput";
-import { UserFindManyArgs } from "./UserFindManyArgs";
-import { UserUpdateInput } from "./UserUpdateInput";
-import { User } from "./User";
-import { ListingFindManyArgs } from "../../listing/base/ListingFindManyArgs";
-import { Listing } from "../../listing/base/Listing";
-import { ListingWhereUniqueInput } from "../../listing/base/ListingWhereUniqueInput";
+import { ListingCreateInput } from "./ListingCreateInput";
+import { ListingWhereInput } from "./ListingWhereInput";
+import { ListingWhereUniqueInput } from "./ListingWhereUniqueInput";
+import { ListingFindManyArgs } from "./ListingFindManyArgs";
+import { ListingUpdateInput } from "./ListingUpdateInput";
+import { Listing } from "./Listing";
 
 @swagger.ApiBearerAuth()
 @common.UseGuards(defaultAuthGuard.DefaultAuthGuard, nestAccessControl.ACGuard)
-export class UserControllerBase {
+export class ListingControllerBase {
   constructor(
-    protected readonly service: UserService,
+    protected readonly service: ListingService,
     protected readonly rolesBuilder: nestAccessControl.RolesBuilder
   ) {}
   @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Post()
-  @swagger.ApiCreatedResponse({ type: User })
+  @swagger.ApiCreatedResponse({ type: Listing })
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "create",
     possession: "any",
   })
   @swagger.ApiForbiddenResponse({
     type: errors.ForbiddenException,
   })
-  async create(@common.Body() data: UserCreateInput): Promise<User> {
+  async create(@common.Body() data: ListingCreateInput): Promise<Listing> {
     return await this.service.create({
-      data: data,
+      data: {
+        ...data,
+
+        listing: data.listing
+          ? {
+              connect: data.listing,
+            }
+          : undefined,
+
+        user: {
+          connect: data.user,
+        },
+      },
       select: {
         createdAt: true,
-        firstName: true,
+        discription: true,
         id: true,
-        lastName: true,
-        roles: true,
+
+        listing: {
+          select: {
+            id: true,
+          },
+        },
+
+        listingCreatedBy: true,
+        locationData: true,
+        locationType: true,
+        mapData: true,
+        photos: true,
+        placeSpace: true,
+        placeType: true,
+        price: true,
+        title: true,
+        trips: true,
         updatedAt: true,
-        username: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+
+        wishlists: true,
       },
     });
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get()
-  @swagger.ApiOkResponse({ type: [User] })
-  @ApiNestedQuery(UserFindManyArgs)
+  @swagger.ApiOkResponse({ type: [Listing] })
+  @ApiNestedQuery(ListingFindManyArgs)
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "read",
     possession: "any",
   })
   @swagger.ApiForbiddenResponse({
     type: errors.ForbiddenException,
   })
-  async findMany(@common.Req() request: Request): Promise<User[]> {
-    const args = plainToClass(UserFindManyArgs, request.query);
+  async findMany(@common.Req() request: Request): Promise<Listing[]> {
+    const args = plainToClass(ListingFindManyArgs, request.query);
     return this.service.findMany({
       ...args,
       select: {
         createdAt: true,
-        firstName: true,
+        discription: true,
         id: true,
-        lastName: true,
-        roles: true,
+
+        listing: {
+          select: {
+            id: true,
+          },
+        },
+
+        listingCreatedBy: true,
+        locationData: true,
+        locationType: true,
+        mapData: true,
+        photos: true,
+        placeSpace: true,
+        placeType: true,
+        price: true,
+        title: true,
+        trips: true,
         updatedAt: true,
-        username: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+
+        wishlists: true,
       },
     });
   }
 
   @common.UseInterceptors(AclFilterResponseInterceptor)
   @common.Get("/:id")
-  @swagger.ApiOkResponse({ type: User })
+  @swagger.ApiOkResponse({ type: Listing })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "read",
     possession: "own",
   })
@@ -105,18 +158,40 @@ export class UserControllerBase {
     type: errors.ForbiddenException,
   })
   async findOne(
-    @common.Param() params: UserWhereUniqueInput
-  ): Promise<User | null> {
+    @common.Param() params: ListingWhereUniqueInput
+  ): Promise<Listing | null> {
     const result = await this.service.findOne({
       where: params,
       select: {
         createdAt: true,
-        firstName: true,
+        discription: true,
         id: true,
-        lastName: true,
-        roles: true,
+
+        listing: {
+          select: {
+            id: true,
+          },
+        },
+
+        listingCreatedBy: true,
+        locationData: true,
+        locationType: true,
+        mapData: true,
+        photos: true,
+        placeSpace: true,
+        placeType: true,
+        price: true,
+        title: true,
+        trips: true,
         updatedAt: true,
-        username: true,
+
+        user: {
+          select: {
+            id: true,
+          },
+        },
+
+        wishlists: true,
       },
     });
     if (result === null) {
@@ -129,10 +204,10 @@ export class UserControllerBase {
 
   @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
-  @swagger.ApiOkResponse({ type: User })
+  @swagger.ApiOkResponse({ type: Listing })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "update",
     possession: "any",
   })
@@ -140,21 +215,55 @@ export class UserControllerBase {
     type: errors.ForbiddenException,
   })
   async update(
-    @common.Param() params: UserWhereUniqueInput,
-    @common.Body() data: UserUpdateInput
-  ): Promise<User | null> {
+    @common.Param() params: ListingWhereUniqueInput,
+    @common.Body() data: ListingUpdateInput
+  ): Promise<Listing | null> {
     try {
       return await this.service.update({
         where: params,
-        data: data,
+        data: {
+          ...data,
+
+          listing: data.listing
+            ? {
+                connect: data.listing,
+              }
+            : undefined,
+
+          user: {
+            connect: data.user,
+          },
+        },
         select: {
           createdAt: true,
-          firstName: true,
+          discription: true,
           id: true,
-          lastName: true,
-          roles: true,
+
+          listing: {
+            select: {
+              id: true,
+            },
+          },
+
+          listingCreatedBy: true,
+          locationData: true,
+          locationType: true,
+          mapData: true,
+          photos: true,
+          placeSpace: true,
+          placeType: true,
+          price: true,
+          title: true,
+          trips: true,
           updatedAt: true,
-          username: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
+
+          wishlists: true,
         },
       });
     } catch (error) {
@@ -168,10 +277,10 @@ export class UserControllerBase {
   }
 
   @common.Delete("/:id")
-  @swagger.ApiOkResponse({ type: User })
+  @swagger.ApiOkResponse({ type: Listing })
   @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "delete",
     possession: "any",
   })
@@ -179,19 +288,41 @@ export class UserControllerBase {
     type: errors.ForbiddenException,
   })
   async delete(
-    @common.Param() params: UserWhereUniqueInput
-  ): Promise<User | null> {
+    @common.Param() params: ListingWhereUniqueInput
+  ): Promise<Listing | null> {
     try {
       return await this.service.delete({
         where: params,
         select: {
           createdAt: true,
-          firstName: true,
+          discription: true,
           id: true,
-          lastName: true,
-          roles: true,
+
+          listing: {
+            select: {
+              id: true,
+            },
+          },
+
+          listingCreatedBy: true,
+          locationData: true,
+          locationType: true,
+          mapData: true,
+          photos: true,
+          placeSpace: true,
+          placeType: true,
+          price: true,
+          title: true,
+          trips: true,
           updatedAt: true,
-          username: true,
+
+          user: {
+            select: {
+              id: true,
+            },
+          },
+
+          wishlists: true,
         },
       });
     } catch (error) {
@@ -214,7 +345,7 @@ export class UserControllerBase {
   })
   async findManyListings(
     @common.Req() request: Request,
-    @common.Param() params: UserWhereUniqueInput
+    @common.Param() params: ListingWhereUniqueInput
   ): Promise<Listing[]> {
     const query = plainToClass(ListingFindManyArgs, request.query);
     const results = await this.service.findListings(params.id, {
@@ -261,12 +392,12 @@ export class UserControllerBase {
 
   @common.Post("/:id/listings")
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "update",
     possession: "any",
   })
   async connectListings(
-    @common.Param() params: UserWhereUniqueInput,
+    @common.Param() params: ListingWhereUniqueInput,
     @common.Body() body: ListingWhereUniqueInput[]
   ): Promise<void> {
     const data = {
@@ -283,12 +414,12 @@ export class UserControllerBase {
 
   @common.Patch("/:id/listings")
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "update",
     possession: "any",
   })
   async updateListings(
-    @common.Param() params: UserWhereUniqueInput,
+    @common.Param() params: ListingWhereUniqueInput,
     @common.Body() body: ListingWhereUniqueInput[]
   ): Promise<void> {
     const data = {
@@ -305,12 +436,12 @@ export class UserControllerBase {
 
   @common.Delete("/:id/listings")
   @nestAccessControl.UseRoles({
-    resource: "User",
+    resource: "Listing",
     action: "update",
     possession: "any",
   })
   async disconnectListings(
-    @common.Param() params: UserWhereUniqueInput,
+    @common.Param() params: ListingWhereUniqueInput,
     @common.Body() body: ListingWhereUniqueInput[]
   ): Promise<void> {
     const data = {
